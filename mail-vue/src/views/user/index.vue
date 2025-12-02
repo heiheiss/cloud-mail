@@ -340,7 +340,6 @@ import {
   userRestSendCount,
   userRestore,
   userDeleteAccount,
-  userDeleteAccount,
   userAllAccount,
   userAll
 } from '@/request/user.js'
