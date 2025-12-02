@@ -25,6 +25,8 @@
       <Icon class="icon" icon="ion:reload" width="18" height="18" @click="refresh"/>
       <Icon class="icon" icon="pepicons-pencil:expand" width="26" height="26" @click="changeExpand"/>
       <el-button size="small" type="primary" @click="exportSecrets">{{ exportButtonText }}</el-button>
+      <el-button size="small" type="danger" v-if="selectedUsers.length > 0" @click="batchDelete">{{ $t('delete') }}</el-button>
+      <el-button size="small" type="primary" v-if="selectedUsers.length > 0" @click="openBatchSetPwd">{{ $t('chgPwd') }}</el-button>
     </div>
     <el-scrollbar ref="scrollbarRef" class="scrollbar">
       <div>
@@ -204,6 +206,15 @@
         </el-button>
       </div>
     </el-dialog>
+    <el-dialog class="dialog" v-model="batchSetPwdShow" :title="$t('changePassword')" >
+      <div class="dialog-box">
+        <el-input v-model="batchPwd" type="password" :placeholder="$t('newPassword')" autocomplete="off">
+        </el-input>
+        <el-button class="btn" type="primary" :loading="settingLoading" @click="batchUpdatePwd"
+        >{{ $t('save') }}
+        </el-button>
+      </div>
+    </el-dialog>
     <el-dialog class="dialog" v-model="setTypeShow" :title="$t('changePerm')" @closed="resetUserForm">
       <div class="dialog-box">
         <el-input disabled :model-value="$t('admin')" v-if="userForm.type === 0"/>
@@ -341,7 +352,10 @@ import {
   userRestore,
   userDeleteAccount,
   userAllAccount,
-  userAll
+  userAllAccount,
+  userAll,
+  userBatchDelete,
+  userBatchSetPwd
 } from '@/request/user.js'
 import {roleSelectUse} from "@/request/role.js";
 import {Icon} from "@iconify/vue";
@@ -436,6 +450,8 @@ const accountShow = ref(false)
 const addLoading = ref(false);
 const setTypeShow = ref(false)
 const setPwdShow = ref(false)
+const batchSetPwdShow = ref(false)
+const batchPwd = ref('')
 const pagerCount = ref(10)
 const settingLoading = ref(false)
 const tableLoading = ref(true)
@@ -1066,6 +1082,62 @@ function exportSecrets() {
             downloadSecrets(urls);
         })
     }
+}
+
+function batchDelete() {
+  ElMessageBox.confirm(t('delConfirm', {msg: t('selectedUsers')}), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning'
+  }).then(() => {
+    const userIds = selectedUsers.value.map(user => user.userId);
+    userBatchDelete(userIds).then(() => {
+      ElMessage({
+        message: t('delSuccessMsg'),
+        type: "success",
+        plain: true
+      })
+      getUserList(false)
+    })
+  });
+}
+
+function openBatchSetPwd() {
+  batchPwd.value = '';
+  batchSetPwdShow.value = true;
+}
+
+function batchUpdatePwd() {
+  if (!batchPwd.value) {
+    ElMessage({
+      message: t('emptyPwdMsg'),
+      type: 'error',
+      plain: true,
+    })
+    return
+  }
+
+  if (batchPwd.value.length < 6) {
+    ElMessage({
+      message: t('pwdLengthMsg'),
+      type: 'error',
+      plain: true,
+    })
+    return
+  }
+
+  const userIds = selectedUsers.value.map(user => user.userId);
+  settingLoading.value = true
+  userBatchSetPwd({password: batchPwd.value, userIds: userIds}).then(() => {
+    batchSetPwdShow.value = false
+    ElMessage({
+      message: t('saveSuccessMsg'),
+      type: "success",
+      plain: true
+    })
+  }).finally(() => {
+    settingLoading.value = false
+  })
 }
 
 function downloadSecrets(urls) {

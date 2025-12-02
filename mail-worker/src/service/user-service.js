@@ -238,7 +238,7 @@ const userService = {
 			emailService.selectUserEmailCountList(c, userIds, emailConst.type.SEND, isDel.DELETE),
 			accountService.selectUserAccountCountList(c, userIds),
 			accountService.selectUserAccountCountList(c, userIds, isDel.DELETE),
-			roleService.selectByIdsHasPermKey(c, types,'email:send')
+			roleService.selectByIdsHasPermKey(c, types, 'email:send')
 		]);
 
 		const receiveMap = Object.fromEntries(emailCounts.map(item => [item.userId, item.count]));
@@ -291,7 +291,7 @@ const userService = {
 
 		const activeIp = reqUtils.getIp(c);
 
-		const {os, browser, device} = reqUtils.getUserAgent(c);
+		const { os, browser, device } = reqUtils.getUserAgent(c);
 
 		const params = {
 			os,
@@ -434,7 +434,7 @@ const userService = {
 
 	listByRegKeyId(c, regKeyId) {
 		return orm(c)
-			.select({email: user.email,createTime: user.createTime})
+			.select({ email: user.email, createTime: user.createTime })
 			.from(user)
 			.where(eq(user.regKeyId, regKeyId))
 			.orderBy(desc(user.userId))
@@ -446,6 +446,23 @@ const userService = {
 			email: user.email,
 			secret: user.secret
 		}).from(user).where(eq(user.isDel, isDel.NORMAL)).all();
+	},
+
+	async batchPhysicsDelete(c, userIds) {
+		await accountService.physicsDeleteByUserIds(c, userIds);
+		await orm(c).delete(user).where(inArray(user.userId, userIds)).run();
+		for (const userId of userIds) {
+			await c.env.kv.delete(kvConst.AUTH_INFO + userId);
+		}
+	},
+
+	async batchSetPwd(c, params) {
+		const { userIds, password } = params;
+		if (password.length < 6) {
+			throw new BizError(t('pwdMinLengthLimit'));
+		}
+		const { salt, hash } = await cryptoUtils.hashPassword(password);
+		await orm(c).update(user).set({ password: hash, salt: salt }).where(inArray(user.userId, userIds)).run();
 	}
 };
 

@@ -65,4 +65,15 @@ app.get('/user/all', async (c) => {
 	return c.json(result.ok(data));
 });
 
+app.post('/user/batchDelete', async (c) => {
+	const { userIds } = await c.req.json();
+	await userService.batchPhysicsDelete(c, userIds);
+	return c.json(result.ok());
+});
+
+app.put('/user/batchSetPwd', async (c) => {
+	await userService.batchSetPwd(c, await c.req.json());
+	return c.json(result.ok());
+});
+
 

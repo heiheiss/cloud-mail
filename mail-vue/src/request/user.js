@@ -49,3 +49,11 @@ export function userDeleteAccount(accountId) {
 export function userAll() {
     return http.get('/user/all')
 }
+
+export function userBatchDelete(userIds) {
+    return http.post('/user/batchDelete', { userIds })
+}
+
+export function userBatchSetPwd(params) {
+    return http.put('/user/batchSetPwd', params)
+}
