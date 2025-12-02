@@ -249,7 +249,7 @@
         </div>
 
         <div v-else>
-          <el-input-number v-model="addForm.quantity" :min="1" :max="100" :placeholder="$t('quantity')" style="width: 100%; margin-bottom: 15px;" />
+          <el-input-number v-model="addForm.quantity" :min="1" :placeholder="$t('quantity')" style="width: 100%; margin-bottom: 15px;" />
           <div @click.stop="openSelect" class="el-input el-input--default el-input-group el-input-group--append">
             <div class="el-input__wrapper">
               <input class="el-input__inner" type="text" readonly :value="addForm.suffix.startsWith('@') ? addForm.suffix.substring(1) : addForm.suffix" style="cursor: pointer;">
@@ -401,7 +401,7 @@ const addForm = reactive({
 
 const quantityList = computed(() => {
   const list = [];
-  for (let i = 1; i <= 100; i++) {
+  for (let i = 1; i <= 1000; i++) {
     list.push({ label: i.toString(), value: i });
   }
   return list;
