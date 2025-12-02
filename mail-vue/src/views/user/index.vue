@@ -249,7 +249,32 @@
         </div>
 
         <div v-else>
-          <el-input-number v-model="addForm.quantity" :min="1" :max="100" :placeholder="$t('quantity')" />
+          <el-input-number v-model="addForm.quantity" :min="1" :max="100" :placeholder="$t('quantity')" style="width: 100%; margin-bottom: 15px;" />
+          <div @click.stop="openSelect" class="el-input el-input--default el-input-group el-input-group--append">
+            <div class="el-input__wrapper">
+              <input class="el-input__inner" type="text" readonly :value="addForm.suffix.startsWith('@') ? addForm.suffix.substring(1) : addForm.suffix" style="cursor: pointer;">
+            </div>
+            <div class="el-input-group__append">
+                <div @click.stop="openSelect" style="cursor: pointer; display: flex; align-items: center; padding: 0 10px;">
+                  <el-select
+                      ref="mySelect"
+                      v-model="addForm.suffix"
+                      :placeholder="$t('select')"
+                      class="select"
+                  >
+                    <el-option
+                        v-for="item in domainList"
+                        :key="item"
+                        :label="item"
+                        :value="item"
+                    />
+                  </el-select>
+                  <div>
+                    <Icon class="setting-icon" icon="mingcute:down-small-fill" width="20" height="20"/>
+                  </div>
+                </div>
+            </div>
+          </div>
         </div>
 
         <el-input type="password" v-model="addForm.password" :placeholder="$t('password')"/>
@@ -315,7 +340,9 @@ import {
   userRestSendCount,
   userRestore,
   userDeleteAccount,
-  userAllAccount
+  userDeleteAccount,
+  userAllAccount,
+  userAll
 } from '@/request/user.js'
 import {roleSelectUse} from "@/request/role.js";
 import {Icon} from "@iconify/vue";
@@ -606,6 +633,15 @@ function openAdd() {
   addForm.quantity = 1;
 }
 
+watch(() => addForm.addMode, (val) => {
+  if (val === 'batch') {
+    addForm.emailPrefix = generateRandomPrefix();
+  } else {
+    addForm.emailPrefix = '';
+  }
+  addForm.suffix = domainList[0];
+})
+
 async function submit() {
   if (addForm.addMode === 'single') {
     // Single user add logic
@@ -681,7 +717,7 @@ async function submit() {
       return
     }
 
-    const domain = domainList[0];
+    const domain = addForm.suffix;
     const usersToCreate = [];
 
     for (let i = 0; i < addForm.quantity; i++) {
@@ -1021,26 +1057,32 @@ function adjustWidth() {
 function exportSecrets() {
 	const domainWithAt = settingStore.domainList[0];
 	const domain = domainWithAt.startsWith('@') ? domainWithAt.substring(1) : domainWithAt;
-	let usersToExport = users.value;
+	
+    if (selectedUsers.value.length > 0) {
+        const urls = selectedUsers.value.map(user => `${user.email}----https://${domain}/showemail?secret=${user.secret}`);
+        downloadSecrets(urls);
+    } else {
+        userAll().then(data => {
+            const urls = data.map(user => `${user.email}----https://${domain}/showemail?secret=${user.secret}`);
+            downloadSecrets(urls);
+        })
+    }
+}
 
-	if (selectedUsers.value.length > 0) {
-		usersToExport = selectedUsers.value;
-	}
-
-	const urls = usersToExport.map(user => `${user.email}----https://${domain}/showemail?secret=${user.secret}`);
-	const fileContent = urls.join('\n');
-	const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
-	const link = document.createElement('a');
-	link.href = URL.createObjectURL(blob);
-	link.download = 'user_secrets.txt';
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
-	ElMessage({
-		message: t('exportSuccessMsg'), // Assuming 'exportSuccessMsg' will be added to i18n
-		type: "success",
-		plain: true
-	});
+function downloadSecrets(urls) {
+    const fileContent = urls.join('\n');
+    const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'user_secrets.txt';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    ElMessage({
+        message: t('exportSuccessMsg'),
+        type: "success",
+        plain: true
+    });
 }
 
 </script>

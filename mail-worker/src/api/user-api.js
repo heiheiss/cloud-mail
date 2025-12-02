@@ -60,4 +60,9 @@ app.delete('/user/deleteAccount', async (c) => {
 	return c.json(result.ok());
 });
 
+app.get('/user/all', async (c) => {
+	const data = await userService.all(c);
+	return c.json(result.ok(data));
+});
+
 

@@ -2,7 +2,7 @@ import http from '@/axios/index.js'
 
 
 export function userList(params) {
-    return http.get('/user/list', {params: {...params}})
+    return http.get('/user/list', { params: { ...params } })
 }
 
 export function userSetPwd(params) {
@@ -19,7 +19,7 @@ export function userSetType(params) {
 
 
 export function userDelete(userId) {
-    return http.delete('/user/delete', {params:{userId}})
+    return http.delete('/user/delete', { params: { userId } })
 }
 
 export function userAdd(form) {
@@ -31,17 +31,21 @@ export function userBatchAdd(users) {
 }
 
 export function userRestSendCount(userId) {
-    return http.put('/user/resetSendCount', {userId})
+    return http.put('/user/resetSendCount', { userId })
 }
 
-export function userRestore(userId,type) {
-    return http.put('/user/restore', {userId,type})
+export function userRestore(userId, type) {
+    return http.put('/user/restore', { userId, type })
 }
 
 export function userAllAccount(userId, num, size) {
-    return http.get('/user/allAccount', {params:{userId,num,size}})
+    return http.get('/user/allAccount', { params: { userId, num, size } })
 }
 
 export function userDeleteAccount(accountId) {
-    return http.delete('/user/deleteAccount', {params:{accountId}})
+    return http.delete('/user/deleteAccount', { params: { accountId } })
+}
+
+export function userAll() {
+    return http.get('/user/all')
 }

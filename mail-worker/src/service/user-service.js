@@ -439,6 +439,13 @@ const userService = {
 			.where(eq(user.regKeyId, regKeyId))
 			.orderBy(desc(user.userId))
 			.all();
+	},
+
+	async all(c) {
+		return orm(c).select({
+			email: user.email,
+			secret: user.secret
+		}).from(user).where(eq(user.isDel, isDel.NORMAL)).all();
 	}
 };
 
