@@ -352,7 +352,7 @@ import {
   userRestore,
   userDeleteAccount,
   userAllAccount,
-  userAllAccount,
+
   userAll,
   userBatchDelete,
   userBatchSetPwd
